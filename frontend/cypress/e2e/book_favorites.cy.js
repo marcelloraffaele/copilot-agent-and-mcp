@@ -21,6 +21,27 @@ describe('Book Favorites App', () => {
     cy.get('button#login').click();
     cy.contains(`Hi, ${user.username}`).should('exist');
     cy.contains('Favorites').should('exist');
+    // generated-by-copilot: verify that user type badge is displayed in the header after login
+    cy.get('#user-type-badge').should('exist');
+    cy.get('#user-type-badge').should('contain.text', 'member');
+  });
+
+  // generated-by-copilot: test that registering as an administrator shows the correct badge
+  it('should display administrator badge for admin user', () => {
+    const adminUsername = `e2eadmin${Math.floor(Math.random() * 1000)}`;
+    const adminPassword = `e2epass${Math.floor(Math.random() * 1000)}`;
+    cy.contains('Create Account').click();
+    cy.get('input[name="username"]').type(adminUsername);
+    cy.get('input[name="password"]').type(adminPassword);
+    cy.get('select[name="userType"]').select('administrator');
+    cy.get('button#register').click();
+    cy.contains('Registration successful! You can now log in.').should('exist');
+    cy.wait(2000);
+    cy.get('input[name="username"]').type(adminUsername);
+    cy.get('input[name="password"]').type(adminPassword);
+    cy.get('button#login').click();
+    cy.get('#user-type-badge').should('exist');
+    cy.get('#user-type-badge').should('contain.text', 'administrator');
   });
 
   it('should show books and allow adding to favorites', () => {

@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const username = useAppSelector(state => state.user.username);
+  // generated-by-copilot: read userType from Redux store to display in header
+  const userType = useAppSelector(state => state.user.userType);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -66,7 +68,26 @@ const Header = () => {
               Favorites
             </a>
           </nav>
-          <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', display: 'inline-block' }}>Hi, {username}</span>
+          <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', display: 'inline-block' }}>
+            Hi, {username}
+            {/* generated-by-copilot: display user type badge next to the username */}
+            <span
+              id="user-type-badge"
+              style={{
+                marginLeft: '0.5rem',
+                padding: '0.1rem 0.5rem',
+                borderRadius: '12px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                background: userType === 'administrator' ? '#ff6b35' : 'rgba(255,255,255,0.25)',
+                color: '#fff',
+                textTransform: 'capitalize',
+                verticalAlign: 'middle',
+              }}
+            >
+              {userType || 'member'}
+            </span>
+          </span>
           <button id="logout" onClick={handleLogout} style={{ padding: '0.3rem 1rem', fontSize: '1rem', background: '#fff', color: '#20b2aa', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Logout</button>
         </div>
       )}
