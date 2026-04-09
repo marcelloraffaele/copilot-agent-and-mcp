@@ -33,6 +33,19 @@ export const removeFavorite = createAsyncThunk('favorites/removeFavorite', async
   return bookId;
 });
 
+export const clearAllFavorites = createAsyncThunk('favorites/clearAllFavorites', async ({ token }) => {
+  const res = await fetch('http://localhost:4000/api/favorites', {
+    method: 'DELETE',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.message || 'Failed to clear favorites');
+  }
+});
+
 const favoritesSlice = createSlice({
   name: 'favorites',
   initialState: { items: [], status: 'idle' },
@@ -50,6 +63,9 @@ const favoritesSlice = createSlice({
       })
       .addCase(removeFavorite.fulfilled, (state, action) => {
         state.items = state.items.filter(book => book.id !== action.payload);
+      })
+      .addCase(clearAllFavorites.fulfilled, (state) => {
+        state.items = [];
       });
   },
 });

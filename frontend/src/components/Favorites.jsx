@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchFavorites, removeFavorite } from '../store/favoritesSlice';
+import { fetchFavorites, removeFavorite, clearAllFavorites } from '../store/favoritesSlice';
 import { useNavigate } from 'react-router-dom';
+import styles from '../styles/BookList.module.css';
 
 const Favorites = () => {
   const dispatch = useAppDispatch();
@@ -22,52 +23,69 @@ const Favorites = () => {
     await dispatch(removeFavorite({ token, bookId }));
   };
 
+  const handleClearAllFavorites = async () => {
+    if (!window.confirm('Are you sure you want to clear all your favorites?')) return;
+    await dispatch(clearAllFavorites({ token }));
+  };
+
   if (status === 'loading') return <div>Loading...</div>;
   if (status === 'failed') return <div>Failed to load favorites.</div>;
 
   return (
-    <div>
-      <h2>My Favorite Books</h2>
-      {favorites.length === 0 ? (
-        <div style={{
-          background: '#fff',
-          padding: '2rem',
-          borderRadius: '8px',
-          maxWidth: '400px',
-          margin: '2rem auto',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-          textAlign: 'center',
-          color: '#888',
-        }}>
-          <p>No favorite books yet.</p>
-          <p>
-            Go to the <a href="/books" onClick={e => { e.preventDefault(); navigate('/books'); }}>book list</a> to add some!
-          </p>
-        </div>
-      ) : (
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {favorites.map(book => (
-            <li key={book.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-              <span><strong>{book.title}</strong> by {book.author}</span>
-              <button
-                onClick={() => handleRemoveFavorite(book.id)}
-                style={{
-                  background: '#e25555',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '0.3rem 0.8rem',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                }}
-                aria-label={`Remove ${book.title} from favorites`}
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className={styles.pageLayout}>
+      <aside className={styles.sidebar}>
+        <span className={styles.sidebarTitle}>Actions</span>
+        <button
+          className={styles.clearBtn}
+          onClick={handleClearAllFavorites}
+          disabled={favorites.length === 0}
+        >
+          Clear All Favorites
+        </button>
+      </aside>
+      <div className={styles.pageContent}>
+        <h2>My Favorite Books</h2>
+        {favorites.length === 0 ? (
+          <div style={{
+            background: '#fff',
+            padding: '2rem',
+            borderRadius: '8px',
+            maxWidth: '400px',
+            margin: '2rem auto',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            textAlign: 'center',
+            color: '#888',
+          }}>
+            <p>No favorite books yet.</p>
+            <p>
+              Go to the <a href="/books" onClick={e => { e.preventDefault(); navigate('/books'); }}>book list</a> to add some!
+            </p>
+          </div>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {favorites.map(book => (
+              <li key={book.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+                <span><strong>{book.title}</strong> by {book.author}</span>
+                <button
+                  onClick={() => handleRemoveFavorite(book.id)}
+                  style={{
+                    background: '#e25555',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.3rem 0.8rem',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                  }}
+                  aria-label={`Remove ${book.title} from favorites`}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
