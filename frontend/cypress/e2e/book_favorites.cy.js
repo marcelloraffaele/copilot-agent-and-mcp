@@ -36,6 +36,25 @@ describe('Book Favorites App', () => {
     cy.get('h2').contains('My Favorite Books').should('exist');
   });
 
+  it('should sort books by title and author in both directions', () => {
+    cy.contains('Login').click();
+    cy.get('input[name="username"]').type(user.username);
+    cy.get('input[name="password"]').type(user.password);
+    cy.get('button#login').click();
+    cy.contains('Books').click();
+
+    cy.get('[data-testid="book-title"]').first().should('have.text', '1984');
+
+    cy.get('select#book-sort').select('Title (Z-A)');
+    cy.get('[data-testid="book-title"]').first().should('have.text', 'Wuthering Heights');
+
+    cy.get('select#book-sort').select('Author (A-Z)');
+    cy.get('[data-testid="book-author"]').first().should('contain.text', 'Albert Camus');
+
+    cy.get('select#book-sort').select('Author (Z-A)');
+    cy.get('[data-testid="book-author"]').first().should('contain.text', 'Yann Martel');
+  });
+
   it('should allow removing a book from favorites', () => {
     // Login first
     cy.contains('Login').click();
