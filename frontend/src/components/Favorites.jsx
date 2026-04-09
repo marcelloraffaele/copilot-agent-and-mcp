@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchFavorites } from '../store/favoritesSlice';
+import { fetchFavorites, removeFavorite } from '../store/favoritesSlice';
 import { useNavigate } from 'react-router-dom';
 
 const Favorites = () => {
@@ -17,6 +17,10 @@ const Favorites = () => {
     }
     dispatch(fetchFavorites(token));
   }, [dispatch, token, navigate]);
+
+  const handleRemoveFavorite = async (bookId) => {
+    await dispatch(removeFavorite({ token, bookId }));
+  };
 
   if (status === 'loading') return <div>Loading...</div>;
   if (status === 'failed') return <div>Failed to load favorites.</div>;
@@ -41,10 +45,25 @@ const Favorites = () => {
           </p>
         </div>
       ) : (
-        <ul>
+        <ul style={{ listStyle: 'none', padding: 0 }}>
           {favorites.map(book => (
-            <li key={book.id}>
-              <strong>{book.title}</strong> by {book.author}
+            <li key={book.id} style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
+              <span><strong>{book.title}</strong> by {book.author}</span>
+              <button
+                onClick={() => handleRemoveFavorite(book.id)}
+                style={{
+                  background: '#e25555',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '0.3rem 0.8rem',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                }}
+                aria-label={`Remove ${book.title} from favorites`}
+              >
+                Remove
+              </button>
             </li>
           ))}
         </ul>
@@ -54,3 +73,4 @@ const Favorites = () => {
 };
 
 export default Favorites;
+
