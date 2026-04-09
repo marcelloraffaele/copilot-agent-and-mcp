@@ -8,7 +8,14 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
     const books = readJSON(booksFile);
-    const favorites = books.filter(b => user.favorites.indexOf(b.id) !== -1);
+    // generated-by-copilot: enrich each favorite book with its comment
+    const favorites = user.favorites
+      .map(fav => {
+        const book = books.find(b => b.id === fav.bookId);
+        if (!book) return null;
+        return { ...book, comment: fav.comment || '' };
+      })
+      .filter(Boolean);
     res.json(favorites);
   });
 
@@ -18,8 +25,9 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    if (user.favorites.indexOf(bookId) == -1) {
-      user.favorites.push(bookId);
+    // generated-by-copilot: store favorites as objects with bookId and comment
+    if (!user.favorites.some(f => f.bookId === bookId)) {
+      user.favorites.push({ bookId, comment: '' });
       writeJSON(usersFile, users);
     }
     res.status(200).json({ message: 'Book added to favorites' });
@@ -30,11 +38,26 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    const index = user.favorites.indexOf(bookId);
+    const index = user.favorites.findIndex(f => f.bookId === bookId);
     if (index === -1) return res.status(404).json({ message: 'Book not in favorites' });
     user.favorites.splice(index, 1);
     writeJSON(usersFile, users);
     res.status(200).json({ message: 'Book removed from favorites' });
+  });
+
+  // generated-by-copilot: endpoint to add or update a comment on a favorite book
+  router.put('/:bookId/comment', authenticateToken, (req, res) => {
+    const { bookId } = req.params;
+    const { comment } = req.body;
+    if (comment === undefined) return res.status(400).json({ message: 'Comment is required' });
+    const users = readJSON(usersFile);
+    const user = users.find(u => u.username === req.user.username);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    const fav = user.favorites.find(f => f.bookId === bookId);
+    if (!fav) return res.status(404).json({ message: 'Book not in favorites' });
+    fav.comment = comment;
+    writeJSON(usersFile, users);
+    res.status(200).json({ message: 'Comment updated', comment });
   });
 
   return router;

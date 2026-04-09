@@ -64,7 +64,7 @@ describe('Favorites API', () => {
     const books = JSON.parse(fs.readFileSync(booksFile, 'utf-8'));
     const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
     const sandra = users.find(u => u.username === 'sandra');
-    const notFav = books.find(b => !sandra.favorites.includes(b.id));
+    const notFav = books.find(b => !sandra.favorites.some(f => f.bookId === b.id));
     if (!notFav) return; // skip if all are favorites
     const res = await request(app)
       .post('/api/favorites')
@@ -78,7 +78,7 @@ describe('Favorites API', () => {
     const token = getToken('sandra');
     const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
     const sandra = users.find(u => u.username === 'sandra');
-    const alreadyFav = sandra.favorites[0];
+    const alreadyFav = sandra.favorites[0].bookId;
     const res = await request(app)
       .post('/api/favorites')
       .set('Authorization', `Bearer ${token}`)
@@ -117,7 +117,7 @@ describe('Favorites API', () => {
     // First ensure the book is in favorites
     const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
     const sandra = users.find(u => u.username === 'sandra');
-    const favBookId = sandra.favorites[0];
+    const favBookId = sandra.favorites[0] ? sandra.favorites[0].bookId : null;
     if (!favBookId) return; // skip if no favorites
     const res = await request(app)
       .delete(`/api/favorites/${favBookId}`)
@@ -127,7 +127,7 @@ describe('Favorites API', () => {
     // Verify it's actually removed
     const updatedUsers = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
     const updatedSandra = updatedUsers.find(u => u.username === 'sandra');
-    expect(updatedSandra.favorites).not.toContain(favBookId);
+    expect(updatedSandra.favorites.some(f => f.bookId === favBookId)).toBe(false);
   });
 
   it('DELETE /api/favorites/:bookId should 404 if book not in favorites', async () => {
@@ -150,5 +150,51 @@ describe('Favorites API', () => {
       .delete('/api/favorites/1')
       .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(404);
+  });
+
+  // generated-by-copilot: tests for comment endpoint
+  it('PUT /api/favorites/:bookId/comment should update a comment', async () => {
+    const token = getToken('sandra');
+    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    const sandra = users.find(u => u.username === 'sandra');
+    const favBookId = sandra.favorites[0].bookId;
+    const res = await request(app)
+      .put(`/api/favorites/${favBookId}/comment`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ comment: 'A wonderful read!' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.comment).toBe('A wonderful read!');
+    const updatedUsers = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    const updatedSandra = updatedUsers.find(u => u.username === 'sandra');
+    const fav = updatedSandra.favorites.find(f => f.bookId === favBookId);
+    expect(fav.comment).toBe('A wonderful read!');
+  });
+
+  it('PUT /api/favorites/:bookId/comment should 400 when comment is missing', async () => {
+    const token = getToken('sandra');
+    const users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    const sandra = users.find(u => u.username === 'sandra');
+    const favBookId = sandra.favorites[0].bookId;
+    const res = await request(app)
+      .put(`/api/favorites/${favBookId}/comment`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+    expect(res.statusCode).toBe(400);
+  });
+
+  it('PUT /api/favorites/:bookId/comment should 404 if book not in favorites', async () => {
+    const token = getToken('sandra');
+    const res = await request(app)
+      .put('/api/favorites/nonexistent-book-id/comment')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ comment: 'test' });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it('PUT /api/favorites/:bookId/comment should fail without auth', async () => {
+    const res = await request(app)
+      .put('/api/favorites/1/comment')
+      .send({ comment: 'test' });
+    expect(res.statusCode).toBe(401);
   });
 });
