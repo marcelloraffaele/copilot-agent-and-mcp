@@ -13,6 +13,8 @@ const BookList = () => {
   const navigate = useNavigate();
   const favorites = useAppSelector(state => state.favorites.items);
   const [sortOption, setSortOption] = useState('title-asc');
+  // generated-by-copilot: search query state for real-time filtering
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -41,16 +43,24 @@ const BookList = () => {
     await dispatch(clearAllFavorites({ token }));
   };
 
-  // ← from feature branch
+  // generated-by-copilot: filter books by title or author, then sort
   const sortedBooks = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const filtered = query
+      ? books.filter(
+          book =>
+            book.title.toLowerCase().includes(query) ||
+            book.author.toLowerCase().includes(query)
+        )
+      : books;
     const [field, direction] = sortOption.split('-');
-    return [...books].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       const valueA = a[field] == null ? '' : String(a[field]);
       const valueB = b[field] == null ? '' : String(b[field]);
       const comparison = valueA.localeCompare(valueB, undefined, { sensitivity: 'base' });
       return direction === 'asc' ? comparison : -comparison;
     });
-  }, [books, sortOption]);
+  }, [books, sortOption, searchQuery]);
 
   if (status === 'loading') return <div>Loading...</div>;
   if (status === 'failed') return <div>Failed to load books.</div>;
@@ -81,6 +91,27 @@ const BookList = () => {
           </div>
         ) : (
           <>
+            {/* generated-by-copilot: search input with clear button */}
+            <div className={styles.searchContainer}>
+              <input
+                type="text"
+                className={styles.searchInput}
+                placeholder="Search by title or author..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') setSearchQuery(''); }}
+                aria-label="Search books"
+              />
+              {searchQuery && (
+                <button
+                  className={styles.clearSearchBtn}
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                >
+                  &#x2715;
+                </button>
+              )}
+            </div>
             <div className={styles.sortControls}>
               <label htmlFor="book-sort">Sort by:</label>
               <select
@@ -96,7 +127,13 @@ const BookList = () => {
               </select>
             </div>
             <div className={styles.bookGrid}>
-              {sortedBooks.map(book => {
+              {sortedBooks.length === 0 ? (
+                /* generated-by-copilot: no results message when search yields no matches */
+                <div className={styles.noResults}>
+                  No books match your search. Try a different title or author.
+                </div>
+              ) : (
+                sortedBooks.map(book => {
                 const isFavorite = favorites.some(fav => fav.id === book.id);
                 return (
                   <div className={styles.bookCard + ' ' + styles.bookCardWithHeart} key={book.id}>
@@ -117,7 +154,7 @@ const BookList = () => {
                     </button>
                   </div>
                 );
-              })}
+              }))}
             </div>
           </>
         )}
