@@ -1,7 +1,24 @@
 const express = require('express');
+const crypto = require('crypto');
+
+function createRateLimitMiddleware({ maxRequests, windowMs }) {
+  const requestsByKey = new Map();
+  return (req, res, next) => {
+    const key = req.user?.username || req.ip;
+    const now = Date.now();
+    const recentRequests = (requestsByKey.get(key) || []).filter(timestamp => now - timestamp < windowMs);
+    if (recentRequests.length >= maxRequests) {
+      return res.status(429).json({ message: 'Too many requests. Please try again later.' });
+    }
+    recentRequests.push(now);
+    requestsByKey.set(key, recentRequests);
+    next();
+  };
+}
 
 function createReviewsRouter({ usersFile, booksFile, readJSON, writeJSON, authenticateToken }) {
   const router = express.Router();
+  const writeRateLimit = createRateLimitMiddleware({ maxRequests: 30, windowMs: 60 * 1000 });
 
   router.get('/', (req, res) => {
     const { bookId } = req.query;
@@ -14,7 +31,7 @@ function createReviewsRouter({ usersFile, booksFile, readJSON, writeJSON, authen
     res.json(filteredReviews);
   });
 
-  router.post('/', authenticateToken, (req, res) => {
+  router.post('/', authenticateToken, writeRateLimit, (req, res) => {
     const { bookId, rating, comment } = req.body;
     const numericRating = Number(rating);
     const trimmedComment = typeof comment === 'string' ? comment.trim() : '';
@@ -36,7 +53,7 @@ function createReviewsRouter({ usersFile, booksFile, readJSON, writeJSON, authen
     }
 
     const review = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: crypto.randomUUID(),
       bookId,
       rating: numericRating,
       comment: trimmedComment,
@@ -47,7 +64,7 @@ function createReviewsRouter({ usersFile, booksFile, readJSON, writeJSON, authen
     res.status(201).json({ ...review, username: user.username });
   });
 
-  router.delete('/:reviewId', authenticateToken, (req, res) => {
+  router.delete('/:reviewId', authenticateToken, writeRateLimit, (req, res) => {
     const users = readJSON(usersFile);
     const user = users.find(u => u.username === req.user.username);
     if (!user) return res.status(404).json({ message: 'User not found' });

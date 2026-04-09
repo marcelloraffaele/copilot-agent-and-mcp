@@ -17,7 +17,7 @@ const BookList = () => {
   const reviews = useAppSelector(state => state.reviews.items);
   const [sortOption, setSortOption] = useState('title-asc');
   const [reviewInputs, setReviewInputs] = useState({});
-  const [reviewError, setReviewError] = useState('');
+  const [reviewErrors, setReviewErrors] = useState({});
 
   useEffect(() => {
     if (!token) {
@@ -62,13 +62,13 @@ const BookList = () => {
     const rating = reviewInputs[bookId]?.rating || '5';
     const comment = (reviewInputs[bookId]?.comment || '').trim();
     if (!comment) {
-      setReviewError('Review comment is required.');
+      setReviewErrors(prev => ({ ...prev, [bookId]: 'Review comment is required.' }));
       return;
     }
-    setReviewError('');
+    setReviewErrors(prev => ({ ...prev, [bookId]: '' }));
     const resultAction = await dispatch(addReview({ token, bookId, rating: Number(rating), comment }));
     if (addReview.rejected.match(resultAction)) {
-      setReviewError(resultAction.error.message || 'Failed to submit review');
+      setReviewErrors(prev => ({ ...prev, [bookId]: resultAction.error.message || 'Failed to submit review' }));
       return;
     }
     setReviewInputs(prev => ({
@@ -77,11 +77,11 @@ const BookList = () => {
     }));
   };
 
-  const handleDeleteReview = async (reviewId) => {
-    setReviewError('');
+  const handleDeleteReview = async (bookId, reviewId) => {
+    setReviewErrors(prev => ({ ...prev, [bookId]: '' }));
     const resultAction = await dispatch(deleteReview({ token, reviewId }));
     if (deleteReview.rejected.match(resultAction)) {
-      setReviewError(resultAction.error.message || 'Failed to delete review');
+      setReviewErrors(prev => ({ ...prev, [bookId]: resultAction.error.message || 'Failed to delete review' }));
     }
   };
 
@@ -143,6 +143,7 @@ const BookList = () => {
               {sortedBooks.map(book => {
                 const isFavorite = favorites.some(fav => fav.id === book.id);
                 const bookReviews = reviews.filter(review => review.bookId === book.id);
+                const reviewError = reviewErrors[book.id];
                 const averageRating = bookReviews.length > 0
                   ? (bookReviews.reduce((sum, review) => sum + review.rating, 0) / bookReviews.length).toFixed(1)
                   : null;
@@ -211,7 +212,7 @@ const BookList = () => {
                                   type="button"
                                   data-testid="review-delete"
                                   className={styles.reviewDelete}
-                                  onClick={() => handleDeleteReview(review.id)}
+                                  onClick={() => handleDeleteReview(book.id, review.id)}
                                 >
                                   Delete
                                 </button>
@@ -220,12 +221,12 @@ const BookList = () => {
                           ))}
                         </ul>
                       )}
+                      {reviewError && <div className={styles.reviewError}>{reviewError}</div>}
                     </div>
                   </div>
                 );
               })}
             </div>
-            {reviewError && <div className={styles.reviewError}>{reviewError}</div>}
           </>
         )}
       </div>
