@@ -31,3 +31,7 @@ coverage/
 # IDE
 .idea/
 *.iml
+
+# Frontend Cypress artifacts
+frontend/cypress/screenshots/
+frontend/cypress/videos/
