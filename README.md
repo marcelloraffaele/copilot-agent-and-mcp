@@ -10,6 +10,7 @@ Book Favorites is a full-stack web application that allows users to:
 - Browse a curated list of 50 books
 - Add books from their personal favorites list
 - View their favorite books in a dedicated section
+- Add, view, and delete reviews for each book with star ratings
 - Enjoy a clean, modern, and responsive user interface
 - Experience protected routes (only logged-in users can access book and favorites pages)
 
@@ -26,7 +27,8 @@ Book Favorites is a full-stack web application that allows users to:
   - Node.js with Express.js for RESTful API endpoints
   - User authentication with JWT (JSON Web Tokens)
   - Data persistence using JSON files (`books.json` and `users.json`)
-  - Modular route structure for authentication, books, and favorites
+- Modular route structure for authentication, books, and favorites
+- Reviews API for creating, listing, and deleting user reviews
   - CORS enabled for frontend-backend communication
 
 - **Other:**

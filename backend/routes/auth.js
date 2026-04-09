@@ -11,7 +11,7 @@ function createAuthRouter({ usersFile, readJSON, writeJSON, SECRET_KEY }) {
     if (users.find(u => u.username === username)) {
       return res.status(409).json({ message: 'User already exists' });
     }
-    users.push({ username, password, userType: 'Member', favorites: [] });
+    users.push({ username, password, userType: 'Member', favorites: [], reviews: [] });
     writeJSON(usersFile, users);
     res.status(201).json({ message: 'User registered' });
   });

@@ -2,6 +2,7 @@ const request = require('supertest');
 const express = require('express');
 const createApiRouter = require('../routes');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(express.json());
@@ -56,6 +57,17 @@ describe('Auth API', () => {
       const loginRes = await request(app).post('/api/login').send(newUser);
       expect(loginRes.statusCode).toBe(200);
       expect(loginRes.body.userType).toBe('Member');
+    }
+  });
+
+  it('POST /api/register should initialize favorites and reviews arrays', async () => {
+    const newUser = { username: 'newreviewuser_unique', password: 'pass123' };
+    const regRes = await request(app).post('/api/register').send(newUser);
+    if (regRes.statusCode === 201) {
+      const users = JSON.parse(fs.readFileSync(path.join(__dirname, '../data/test-users.json'), 'utf-8'));
+      const createdUser = users.find(user => user.username === newUser.username);
+      expect(createdUser.favorites).toEqual([]);
+      expect(createdUser.reviews).toEqual([]);
     }
   });
 
