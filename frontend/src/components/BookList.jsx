@@ -45,8 +45,10 @@ const BookList = () => {
   const sortedBooks = useMemo(() => {
     const [field, direction] = sortOption.split('-');
     return [...books].sort((a, b) => {
-      const valueA = a[field] || '';
-      const valueB = b[field] || '';
+      const rawA = a[field];
+      const rawB = b[field];
+      const valueA = rawA == null ? '' : String(rawA);
+      const valueB = rawB == null ? '' : String(rawB);
       const comparison = valueA.localeCompare(valueB, undefined, { sensitivity: 'base' });
       return direction === 'asc' ? comparison : -comparison;
     });
