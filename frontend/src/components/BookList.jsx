@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchBooks } from '../store/booksSlice';
 import { addFavorite, removeFavorite, fetchFavorites } from '../store/favoritesSlice';
@@ -13,6 +13,7 @@ const BookList = () => {
   const token = useAppSelector(state => state.user.token);
   const navigate = useNavigate();
   const favorites = useAppSelector(state => state.favorites.items);
+  const [sortOption, setSortOption] = useState('title-asc');
 
   useEffect(() => {
     if (!token) {
@@ -41,6 +42,16 @@ const BookList = () => {
     dispatch(fetchFavorites(token));
   };
 
+  const sortedBooks = useMemo(() => {
+    const [field, direction] = sortOption.split('-');
+    return [...books].sort((a, b) => {
+      const valueA = a[field] || '';
+      const valueB = b[field] || '';
+      const comparison = valueA.localeCompare(valueB, undefined, { sensitivity: 'base' });
+      return direction === 'asc' ? comparison : -comparison;
+    });
+  }, [books, sortOption]);
+
   if (status === 'loading') return <div>Loading...</div>;
   if (status === 'failed') return <div>Failed to load books.</div>;
 
@@ -62,8 +73,23 @@ const BookList = () => {
           <p>Check back later or add a new book if you have permission.</p>
         </div>
       ) : (
-        <div className={styles.bookGrid}>
-          {books.map(book => {
+        <>
+          <div className={styles.sortControls}>
+            <label htmlFor="book-sort">Sort by:</label>
+            <select
+              id="book-sort"
+              className={styles.sortSelect}
+              value={sortOption}
+              onChange={event => setSortOption(event.target.value)}
+            >
+              <option value="title-asc">Title (A-Z)</option>
+              <option value="title-desc">Title (Z-A)</option>
+              <option value="author-asc">Author (A-Z)</option>
+              <option value="author-desc">Author (Z-A)</option>
+            </select>
+          </div>
+          <div className={styles.bookGrid}>
+            {sortedBooks.map(book => {
             const isFavorite = favorites.some(fav => fav.id === book.id);
             return (
               <div className={styles.bookCard + ' ' + styles.bookCardWithHeart} key={book.id}>
@@ -74,8 +100,8 @@ const BookList = () => {
                     </svg>
                   </span>
                 )}
-                <div className={styles.bookTitle}>{book.title}</div>
-                <div className={styles.bookAuthor}>by {book.author}</div>
+                <div className={styles.bookTitle} data-testid="book-title">{book.title}</div>
+                <div className={styles.bookAuthor} data-testid="book-author">by {book.author}</div>
                 <button
                   className={styles.simpleBtn}
                   onClick={() => isFavorite ? handleRemoveFavorite(book.id) : handleAddFavorite(book.id)}
@@ -84,8 +110,9 @@ const BookList = () => {
                 </button>
               </div>
             );
-          })}
-        </div>
+            })}
+          </div>
+        </>
       )}
     </div>
   );
