@@ -209,3 +209,82 @@
   box-shadow: none !important;
   background: none !important;
 }
+
+.reviewSection {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.averageRating {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.reviewForm {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.reviewForm input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  padding: 0.35rem 0.55rem;
+}
+
+.reviewForm select {
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  padding: 0.35rem 0.45rem;
+}
+
+.reviewList {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.reviewItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.reviewDelete {
+  background: #e25555;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.reviewDelete:hover {
+  background: #c0392b;
+}
+
+.reviewEmpty {
+  margin: 0.65rem 0 0;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.reviewError {
+  margin-top: 1rem;
+  color: #c0392b;
+}

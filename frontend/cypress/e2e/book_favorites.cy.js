@@ -55,6 +55,27 @@ describe('Book Favorites App', () => {
     cy.get('[data-testid="book-author"]').first().should('contain.text', 'Yann Martel');
   });
 
+  it('should allow adding and deleting a review with average rating displayed', () => {
+    cy.contains('Login').click();
+    cy.get('input[name="username"]').type(user.username);
+    cy.get('input[name="password"]').type(user.password);
+    cy.get('button#login').click();
+    cy.contains('Books').click();
+
+    cy.get('[data-testid="book-card"]').first().then(($card) => {
+      if ($card.find('[data-testid="review-delete"]').length > 0) {
+        cy.wrap($card).find('[data-testid="review-delete"]').first().click();
+      }
+      cy.wrap($card).find('[data-testid="review-comment"]').clear().type('Amazing story');
+      cy.wrap($card).find('[data-testid="review-rating"]').select('5');
+      cy.wrap($card).find('[data-testid="review-submit"]').click();
+      cy.wrap($card).contains('Amazing story').should('exist');
+      cy.wrap($card).contains('Avg rating:').should('exist');
+      cy.wrap($card).find('[data-testid="review-delete"]').first().click();
+      cy.wrap($card).contains('Amazing story').should('not.exist');
+    });
+  });
+
   it('should allow removing a book from favorites', () => {
     // Login first
     cy.contains('Login').click();
