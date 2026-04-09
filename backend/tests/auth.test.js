@@ -39,6 +39,24 @@ describe('Auth API', () => {
     const res = await request(app).post('/api/login').send(testUser);
     expect(res.statusCode).toBe(200);
     expect(res.body.token).toBeDefined();
+    expect(res.body.userType).toBeDefined();
+  });
+
+  it('POST /api/register should assign default userType Member', async () => {
+    const newUser = { username: 'newtypeuser_unique', password: 'pass123' };
+    const regRes = await request(app).post('/api/register').send(newUser);
+    // Only verify userType on fresh registration (201)
+    if (regRes.statusCode === 201) {
+      const loginRes = await request(app).post('/api/login').send(newUser);
+      expect(loginRes.statusCode).toBe(200);
+      expect(loginRes.body.userType).toBe('Member');
+    }
+    // If user already exists (409), verify existing user's type is still Member
+    if (regRes.statusCode === 409) {
+      const loginRes = await request(app).post('/api/login').send(newUser);
+      expect(loginRes.statusCode).toBe(200);
+      expect(loginRes.body.userType).toBe('Member');
+    }
   });
 
   it('POST /api/login should fail with wrong password', async () => {
